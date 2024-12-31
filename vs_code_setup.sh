@@ -48,7 +48,7 @@ openssl req -newkey rsa:2048 -nodes -keyout ~/.config/code-server/selfsigned.key
 echo ""
 echo "Creating a configuration file for VS Code Server..."
 cat > ~/.config/code-server/config.yaml << EOF
-bind-addr: 0.0.0.0:80
+bind-addr: 0.0.0.0:443
 auth: password
 password: changeme!
 cert: ~/.config/code-server/selfsigned.crt
@@ -66,9 +66,9 @@ if ps -ef | grep -v grep | grep code-server > /dev/null
 then
     echo "VS Code Server is already running."
 else
-    echo "Starting VS Code Server on port 80..."
-    sudo code-server --bind-addr 0.0.0.0:80 --cert ~/.config/code-server/selfsigned.crt --cert-key ~/.config/code-server/selfsigned.key /home/ubuntu > ~/code-server.log 2>&1 &
-    echo "VS Code Server started on port 80."
+    echo "Starting VS Code Server on port 443..."
+    sudo code-server --bind-addr 0.0.0.0:443 --cert ~/.config/code-server/selfsigned.crt --cert-key ~/.config/code-server/selfsigned.key /home/ubuntu > ~/code-server.log 2>&1 &
+    echo "VS Code Server started on port 443."
 fi
 EOF
 
