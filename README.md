@@ -25,8 +25,8 @@ This bash script will:
 
 ### 1. Clone This Repository
 ```bash
-git clone https://github.com/andrewbrimusu/vscode-cloud-setup.git
-cd vscode-cloud-setup
+git clone https://github.com/andrewbrimusu/ec2_scripts.git
+cd ec2_scripts
 chmod 775 vs_code_setup.sh
 ./vs_code_setup.sh
 
