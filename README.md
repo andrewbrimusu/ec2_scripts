@@ -27,6 +27,6 @@ This bash script will:
 ```bash
 git clone https://github.com/andrewbrimusu/ec2_scripts.git
 cd ec2_scripts
-chmod 775 vs_code_setup.sh
+chmod +x vs_code_setup.sh
 ./vs_code_setup.sh
 
