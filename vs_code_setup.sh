@@ -38,11 +38,27 @@ echo ""
 echo "Verifying the VS Code Server installation..."
 code-server --version
 
-# Step 4: Generate self-signed SSL certificates
+# Step 4: Generate SSL certificates using DNS provider (e.g., Cloudflare)
 echo ""
-echo "Generating self-signed SSL certificates for secure access..."
-mkdir -p ~/.config/code-server
-openssl req -newkey rsa:2048 -nodes -keyout ~/.config/code-server/selfsigned.key -x509 -days 365 -out ~/.config/code-server/selfsigned.crt -subj "/C=US/ST=State/L=City/O=Organization/OU=Unit/CN=localhost"
+echo "Setting up SSL certificates for secure access..."
+sudo apt install -y certbot python3-certbot-dns-cloudflare
+
+# Cloudflare credentials file setup
+echo ""
+echo "Configuring Cloudflare credentials..."
+CF_CREDENTIALS_PATH="/etc/cloudflare/cloudflare.ini"
+sudo mkdir -p /etc/cloudflare
+sudo bash -c "cat > $CF_CREDENTIALS_PATH" << EOF
+dns_cloudflare_email = your-email@example.com
+dns_cloudflare_api_key = your-cloudflare-api-key
+EOF
+sudo chmod 600 $CF_CREDENTIALS_PATH
+
+# Request SSL certificate
+echo ""
+echo "Requesting SSL certificate using Cloudflare DNS..."
+DOMAIN="your-domain.com"  # Replace with your actual domain
+sudo certbot certonly --dns-cloudflare --dns-cloudflare-credentials $CF_CREDENTIALS_PATH -d $DOMAIN
 
 # Step 5: Create a configuration file for VS Code Server
 echo ""
@@ -51,8 +67,8 @@ cat > ~/.config/code-server/config.yaml << EOF
 bind-addr: 0.0.0.0:443
 auth: password
 password: changeme!
-cert: ~/.config/code-server/selfsigned.crt
-cert-key: ~/.config/code-server/selfsigned.key
+cert: /etc/letsencrypt/live/$DOMAIN/fullchain.pem
+cert-key: /etc/letsencrypt/live/$DOMAIN/privkey.pem
 EOF
 
 # Step 6: Create a script to start VS Code Server automatically
@@ -67,7 +83,7 @@ then
     echo "VS Code Server is already running."
 else
     echo "Starting VS Code Server on port 443..."
-    sudo code-server --bind-addr 0.0.0.0:443 --cert ~/.config/code-server/selfsigned.crt --cert-key ~/.config/code-server/selfsigned.key /home/ubuntu > ~/code-server.log 2>&1 &
+    sudo code-server --bind-addr 0.0.0.0:443 --cert /etc/letsencrypt/live/$DOMAIN/fullchain.pem --cert-key /etc/letsencrypt/live/$DOMAIN/privkey.pem /home/ubuntu > ~/code-server.log 2>&1 &
     echo "VS Code Server started on port 443."
 fi
 EOF
@@ -146,6 +162,6 @@ echo "You can manually start the server using: ~/startup.sh"
 if [ -z "$HOST_PUBLIC_IP" ]; then
     echo "Public IP not found. Ensure the instance has a public IP assigned."
 else
-    echo "Access your VS Code Server at: https://$HOST_PUBLIC_IP"
+    echo "Access your VS Code Server at: https://$DOMAIN"
 fi
 echo "Note: The default password is 'changeme!' and should be changed for better security."
