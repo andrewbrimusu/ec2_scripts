@@ -8,7 +8,7 @@ sudo apt update && sudo apt upgrade -y
 # Install necessary dependencies
 echo ""
 echo "Installing necessary dependencies..."
-sudo apt install -y unzip curl wget git openssl
+sudo apt install -y unzip curl wget git openssl certbot
 
 # Step 2: Create the /var/app directory
 echo ""
@@ -38,27 +38,11 @@ echo ""
 echo "Verifying the VS Code Server installation..."
 code-server --version
 
-# Step 4: Generate SSL certificates using DNS provider (e.g., Cloudflare)
+# Step 4: Generate SSL certificates using Let's Encrypt
 echo ""
-echo "Setting up SSL certificates for secure access..."
-sudo apt install -y certbot python3-certbot-dns-cloudflare
-
-# Cloudflare credentials file setup
-echo ""
-echo "Configuring Cloudflare credentials..."
-CF_CREDENTIALS_PATH="/etc/cloudflare/cloudflare.ini"
-sudo mkdir -p /etc/cloudflare
-sudo bash -c "cat > $CF_CREDENTIALS_PATH" << EOF
-dns_cloudflare_email = your-email@example.com
-dns_cloudflare_api_key = your-cloudflare-api-key
-EOF
-sudo chmod 600 $CF_CREDENTIALS_PATH
-
-# Request SSL certificate
-echo ""
-echo "Requesting SSL certificate using Cloudflare DNS..."
+echo "Setting up SSL certificates with Let's Encrypt..."
 DOMAIN="your-domain.com"  # Replace with your actual domain
-sudo certbot certonly --dns-cloudflare --dns-cloudflare-credentials $CF_CREDENTIALS_PATH -d $DOMAIN
+sudo certbot certonly --standalone --agree-tos --register-unsafely-without-email -d $DOMAIN
 
 # Step 5: Create a configuration file for VS Code Server
 echo ""
