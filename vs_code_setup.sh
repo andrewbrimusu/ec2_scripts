@@ -67,7 +67,7 @@ then
     echo "VS Code Server is already running."
 else
     echo "Starting VS Code Server on port 443..."
-    sudo code-server --bind-addr 0.0.0.0:443 --cert ~/.config/code-server/selfsigned.crt --cert-key ~/.config/code-server/selfsigned.key /home/ubuntu > ~/code-server.log 2>&1 &
+    code-server --bind-addr 0.0.0.0:443 --cert ~/.config/code-server/selfsigned.crt --cert-key ~/.config/code-server/selfsigned.key /home/ubuntu > ~/code-server.log 2>&1 &
     echo "VS Code Server started on port 443."
 fi
 EOF
