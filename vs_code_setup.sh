@@ -21,7 +21,7 @@ echo "Downloading the latest version of VS Code Server..."
 latest_version=$(curl -s https://api.github.com/repos/coder/code-server/releases/latest | grep "browser_download_url.*linux-amd64.tar.gz" | cut -d '"' -f 4)
 wget -O code-server-latest-linux-amd64.tar.gz $latest_version
 
-# Extract the downloaded tar.gz file and move it to /var/app
+# Extract and install code-server to /var/app
 echo ""
 echo "Extracting and installing VS Code Server into /var/app..."
 tar -xvzf code-server-latest-linux-amd64.tar.gz
@@ -40,7 +40,7 @@ code-server --version
 
 # Step 4: Generate self-signed SSL certificates
 echo ""
-echo "Generating self-signed SSL certificates for secure access..."
+echo "Generating self-signed SSL certificates..."
 mkdir -p ~/.config/code-server
 openssl req -newkey rsa:2048 -nodes -keyout ~/.config/code-server/selfsigned.key -x509 -days 365 -out ~/.config/code-server/selfsigned.crt -subj "/C=US/ST=State/L=City/O=Organization/OU=Unit/CN=localhost"
 
@@ -67,7 +67,7 @@ then
     echo "VS Code Server is already running."
 else
     echo "Starting VS Code Server on port 443..."
-    code-server --bind-addr 0.0.0.0:443 --cert ~/.config/code-server/selfsigned.crt --cert-key ~/.config/code-server/selfsigned.key /home/ubuntu > ~/code-server.log 2>&1 &
+    sudo code-server --config /home/ubuntu/.config/code-server/config.yaml --bind-addr 0.0.0.0:443 --cert /home/ubuntu/.config/code-server/selfsigned.crt --cert-key /home/ubuntu/.config/code-server/selfsigned.key /home/ubuntu > ~/code-server.log 2>&1 &
     echo "VS Code Server started on port 443."
 fi
 EOF
