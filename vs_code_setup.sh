@@ -1,37 +1,32 @@
 #!/bin/bash
 
 # Step 1: Update system packages
-# Ensures that all packages on the server are up-to-date for security and compatibility.
 echo ""
 echo "Updating system packages..."
 sudo apt update && sudo apt upgrade -y
 
 # Install necessary dependencies
-# Required for downloading files, generating certificates, and running the server.
 echo ""
 echo "Installing necessary dependencies..."
 sudo apt install -y unzip curl wget git openssl
 
 # Step 2: Create the /var/app directory
-# This directory will store the VS Code Server installation files.
 echo ""
 echo "Creating /var/app directory for storing VS Code Server files..."
-mkdir -p /var/app
+sudo mkdir -p /var/app
 
 # Step 3: Download the latest code-server release
-# Fetches the latest version of VS Code Server from its GitHub releases.
 echo ""
 echo "Downloading the latest version of VS Code Server..."
 latest_version=$(curl -s https://api.github.com/repos/coder/code-server/releases/latest | grep "browser_download_url.*linux-amd64.tar.gz" | cut -d '"' -f 4)
 wget -O code-server-latest-linux-amd64.tar.gz $latest_version
 
-# Extract and install code-server to /var/app
-# Moves the installation files to the designated directory.
+# Extract the downloaded tar.gz file and move it to /var/app
 echo ""
 echo "Extracting and installing VS Code Server into /var/app..."
 tar -xvzf code-server-latest-linux-amd64.tar.gz
-mv code-server-*-linux-amd64 /var/app/code-server
-ln -s /var/app/code-server/bin/code-server ~/.local/bin/code-server
+sudo mv code-server-*-linux-amd64 /var/app/code-server
+sudo ln -s /var/app/code-server/bin/code-server /usr/local/bin/code-server
 
 # Clean up the downloaded tar.gz file to save space
 echo ""
@@ -41,17 +36,15 @@ rm -rf code-server-latest-linux-amd64.tar.gz
 # Verify the installation of code-server
 echo ""
 echo "Verifying the VS Code Server installation..."
-~/.local/bin/code-server --version
+code-server --version
 
 # Step 4: Generate self-signed SSL certificates
-# Creates a self-signed certificate to enable HTTPS for secure communication.
 echo ""
-echo "Generating self-signed SSL certificates..."
+echo "Generating self-signed SSL certificates for secure access..."
 mkdir -p ~/.config/code-server
 openssl req -newkey rsa:2048 -nodes -keyout ~/.config/code-server/selfsigned.key -x509 -days 365 -out ~/.config/code-server/selfsigned.crt -subj "/C=US/ST=State/L=City/O=Organization/OU=Unit/CN=localhost"
 
 # Step 5: Create a configuration file for VS Code Server
-# Sets up the server with a default password and HTTPS using the self-signed certificate.
 echo ""
 echo "Creating a configuration file for VS Code Server..."
 cat > ~/.config/code-server/config.yaml << EOF
@@ -63,7 +56,6 @@ cert-key: ~/.config/code-server/selfsigned.key
 EOF
 
 # Step 6: Create a script to start VS Code Server automatically
-# This script ensures the server starts whenever it is not running.
 echo ""
 echo "Creating a script to manage the VS Code Server startup..."
 cat > ~/startup.sh << 'EOF'
@@ -75,7 +67,7 @@ then
     echo "VS Code Server is already running."
 else
     echo "Starting VS Code Server on port 443..."
-    ~/.local/bin/code-server --bind-addr 0.0.0.0:443 --cert ~/.config/code-server/selfsigned.crt --cert-key ~/.config/code-server/selfsigned.key /home/ubuntu > ~/code-server.log 2>&1 &
+    sudo code-server --bind-addr 0.0.0.0:443 --cert ~/.config/code-server/selfsigned.crt --cert-key ~/.config/code-server/selfsigned.key /home/ubuntu > ~/code-server.log 2>&1 &
     echo "VS Code Server started on port 443."
 fi
 EOF
@@ -86,7 +78,6 @@ echo "Making the startup script executable..."
 chmod +x ~/startup.sh
 
 # Step 7: Automatically run the startup script when the user logs in
-# Adds the startup script to the .bashrc file to run it automatically at login.
 echo ""
 echo "Adding the startup script to .bashrc for automatic execution..."
 if ! grep -Fxq "~/startup.sh" /home/ubuntu/.bashrc; then
@@ -99,7 +90,6 @@ echo "Starting the VS Code Server..."
 ~/startup.sh
 
 # Step 8: Retrieve the system's private and public IP addresses
-# Displays the server's private and public IPs for easy access.
 echo ""
 echo "Retrieving the private and public IP addresses of the system..."
 PRIVATE_IP=$(hostname -I | awk '{print $1}')
@@ -120,7 +110,6 @@ echo "Private IP Address: $HOST_PRIVATE_IP"
 echo "Public IP Address: $HOST_PUBLIC_IP"
 
 # Step 9: Check if the default password is still in use
-# Warns the user to change the default password for security purposes.
 echo ""
 echo "Checking if the password is still set to the default..."
 if grep -q "password: changeme!" ~/.config/code-server/config.yaml; then
@@ -132,7 +121,6 @@ if grep -q "password: changeme!" ~/.config/code-server/config.yaml; then
 fi
 
 # Step 10: Optimize system limits for file watching
-# Increases the number of file watchers to improve performance for large projects.
 echo ""
 echo "Increasing the number of file watchers for better performance..."
 sudo bash -c 'echo "fs.inotify.max_user_watches=524288" > /etc/sysctl.d/99-sysctl.conf'
