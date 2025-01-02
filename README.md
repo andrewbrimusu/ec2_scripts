@@ -23,7 +23,7 @@ This bash script will:
 
 ## 🛠️ Setup Instructions
 
-### 1. Clone This Repository
+### 1. Clone This Repository, and run the setup file steps
 ```bash
 git clone https://github.com/andrewbrimusu/ec2_scripts.git
 cd ec2_scripts
